@@ -6,7 +6,7 @@ import org.springframework.stereotype.Controller;
 
 import com.weshare.model.Post;
 
-@Controller
+
 public interface PostService
 {
 	public List<Post> getAllPosts();
