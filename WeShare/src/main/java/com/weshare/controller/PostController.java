@@ -3,8 +3,6 @@ package com.weshare.controller;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.net.URI;
-import java.security.Principal;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -22,57 +20,72 @@ import org.springframework.web.servlet.view.RedirectView;
 import com.weshare.model.Community;
 import com.weshare.model.Post;
 import com.weshare.model.User;
-import com.weshare.service.AzureBlobAdapter;
-import com.weshare.service.CommunityService;
-import com.weshare.service.PostService;
-import com.weshare.service.UserService;
+import com.weshare.service.impl.CommunityServiceImpl;
+import com.weshare.service.impl.PostServiceImpl;
+//import com.weshare.service.impl.CommunityServiceImpl;
+import com.weshare.service.impl.UserServiceImpl;
+
+//for azure
+//package blobQuickstart.blobAzureApp;
+
+
+//import com.microsoft.azure.storage.*;
+//import com.microsoft.azure.storage.blob.*;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.Writer;
+import java.util.Scanner;
+
 
 @Controller
 public class PostController
 {
-	@Autowired
-	private UserService userService;
-	@Autowired
-	private PostService postService;
-	@Autowired
-	private CommunityService communityService;
-	
-	@Autowired
-    private AzureBlobAdapter azureBlobAdapter;
+	private final UserServiceImpl userServiceImpl;
+	private final PostServiceImpl postServiceImpl;
+	private final CommunityServiceImpl communityServiceImp;
 //	@Autowired
 //    private CommunityServiceImpl communityService;
-	
+	@Autowired
+    public PostController(UserServiceImpl userServiceImpl,
+    			PostServiceImpl postServiceImpl,
+    			CommunityServiceImpl communityServiceImp) 
+	{
+        this.userServiceImpl = userServiceImpl;
+        this.postServiceImpl = postServiceImpl;
+        this.communityServiceImp = communityServiceImp;
+    }
 	
 	@GetMapping("/createpost")
     public String getCreatePost(Model model)
 	{
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		User user = userService.findUserByUserName(auth.getName());
+		User user = userServiceImpl.findUserByUserName(auth.getName());
 		model.addAttribute("use", user); 
         return "user/createPost";
     }
 	
 	@PostMapping("/createpost")
-    public String addPost(Model model, HttpServletRequest request,Principal principal)
+    public RedirectView addPost(Model model, HttpServletRequest request)
 	{
 //        System.out.println("\n\n\n create post\n\n\n");
-		User user=this.userService.findUserByUserName(principal.getName());
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		User user = userServiceImpl.findUserByUserName(auth.getName());
 		model.addAttribute("use", user);
         String title = request.getParameter("postTitle");
         int communityId = Integer.parseInt(request.getParameter("communityId"));
         String postType = request.getParameter("postType");
         System.out.println("\n\n\npost tpye: "+postType);
         Post newPost = new Post();
-        Community community = communityService.getCommunityById(communityId);
+        Community community = communityServiceImp.getCommunityById(communityId);
         
         newPost.setTitle(title);
         
         if(postType.equals("normal"))
         {
-            String content = request.getParameter("content");
-            System.out.println("\n\n\n in if normal \n\n\n: "+content);
-            newPost.setContent(content);
-            System.out.println("\n\n\n leaving if normal \n\n\n: "+content);
+            String content = request.getParameter("postDesciption");
+        	newPost.setContent(content);
         }
         else if(postType.equals("link"))
         {
@@ -82,35 +95,36 @@ public class PostController
         newPost.setTitle(title);
 		newPost.setUser(user);
     	newPost.setCommunity(community);
-//    	userService.saveUser(user);
-    	postService.savePost(newPost);
-//    	communityService.saveCommunity(community);
-//    	user.addPost(newPost);
-//    	community.addPost(newPost);
-        return "redirect:/createpost";
+    	userServiceImpl.saveUser(user);
+    	postServiceImpl.savePost(newPost);
+    	communityServiceImp.saveCommunity(community);
+    	user.addPost(newPost);
+    	community.addPost(newPost);
+        return new RedirectView("createpost");
     }
 	
 	@PostMapping("/createpostwithmedia")
     public RedirectView addMediaPost(Model model, HttpServletRequest request,
-    		@RequestParam("postImage") MultipartFile postImage, Principal principal)
+    		@RequestParam("postImage") MultipartFile postImage)
 	{
-		User user=this.userService.findUserByUserName(principal.getName());
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		User user = userServiceImpl.findUserByUserName(auth.getName());
 		model.addAttribute("use", user);
         String title = request.getParameter("postTitle");
         int communityId = Integer.parseInt(request.getParameter("communityId"));
         String postType = request.getParameter("postType");
         System.out.println("\n\n\npost tpye: "+postType);
         Post newPost = new Post();
-        Community community = communityService.getCommunityById(communityId);
+        Community community = communityServiceImp.getCommunityById(communityId);
         
         newPost.setTitle(title);
 		newPost.setUser(user);
     	newPost.setCommunity(community);
-    	userService.saveUser(user);
-    	postService.savePost(newPost);
-    	communityService.saveCommunity(community);
-//    	user.addPost(newPost);
-//    	community.addPost(newPost);
+    	userServiceImpl.saveUser(user);
+    	postServiceImpl.savePost(newPost);
+    	communityServiceImp.saveCommunity(community);
+    	user.addPost(newPost);
+    	community.addPost(newPost);
     	
     	String imageName = newPost.getPostId() + ".png";
     	
@@ -123,11 +137,6 @@ public class PostController
 					new FileOutputStream(new File("src/main/resources/static/postImages/" + imageName)));
 			stream.write(bytes);
 			stream.close();
-			
-			boolean temp = azureBlobAdapter.createContainer("postimages");
-			System.out.println("\n\n\nblob created? "+temp+"\n\n\n\n");
-			URI url = azureBlobAdapter.upload(postImage);
-			
     	}
     	catch(Exception e)
     	{
