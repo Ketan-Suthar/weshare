@@ -166,68 +166,7 @@ ul>li {
 									</div>
 								</div>
 							</div>
-
-
 						</div>
-
-						<div class="row page">
-							<div class="form-group col-md-1" style="margin-left: 40px;">
-								<select class="form-control pagination" id="pageSizeSelect">
-
-									<option th:each="pageSize : ${pageSizes}" th:text="${pageSize}"
-										th:value="${pageSize}"
-										th:id="${pageSize}"
-										th:selected="${pageSize} == ${selectedPageSize}">
-										<span
-											th:text="${pageSize}"></span>
-									</option>
-
-								</select>
-							</div>
-							<div th:if="${posts.totalPages != 1}"
-								class="form-group col-md-11 pagination-centered">
-								<ul class="pagination">
-									<li th:class="${posts.number == 0} ? disabled"><a
-										th:if="${user == null}" class="pageLink"
-										th:href="@{''(pageSize=${selectedPageSize}, page=1)}">&laquo;</a>
-										<a th:if="${user != null}" class="pageLink"
-										th:href="@{''(pageSize=${selectedPageSize}, page=1)}">&laquo;</a>
-									</li>
-									<li th:class="${posts.number == 0} ? disabled"><a
-										th:if="${user == null}" class="pageLink"
-										th:href="@{''(pageSize=${selectedPageSize}, page=${posts.number})}">&larr;</a>
-										<a th:if="${user != null}" class="pageLink"
-										th:href="@{''(pageSize=${selectedPageSize}, page=${posts.number})}">&larr;</a>
-									</li>
-									<li
-										th:class="${posts.number == (page - 1)} ? 'active pointer-disabled'"
-										th:each="page : ${#numbers.sequence(postsPager.firstButton, postsPager.finalButton)}">
-										<a th:if="${user == null}" class="pageLink"
-										th:href="@{'' (pageSize=${selectedPageSize}, page=${page})}"
-										th:text="${page}"></a> <a th:if="${user != null}"
-										class="pageLink"
-										th:href="@{'' (pageSize=${selectedPageSize}, page=${page})}"
-										th:text="${page}"></a>
-									</li>
-									<li
-										th:class="${posts.number + 1 == posts.totalPages} ? disabled">
-										<a th:if="${user == null}" class="pageLink"
-										th:href="@{'' (pageSize=${selectedPageSize}, page=${posts.number + 2})}">&rarr;</a>
-										<a th:if="${user != null}" class="pageLink"
-										th:href="@{'' (pageSize=${selectedPageSize}, page=${posts.number + 2})}">&rarr;</a>
-									</li>
-									<li
-										th:class="${posts.number + 1 == posts.totalPages} ? disabled">
-										<a th:if="${user == null}" class="pageLink"
-										th:href="@{'' (pageSize=${selectedPageSize}, page=${posts.totalPages})}">&raquo;</a>
-										<a th:if="${user != null}" class="pageLink"
-										th:href="@{'' (pageSize=${selectedPageSize}, page=${posts.totalPages})}">&raquo;</a>
-									</li>
-								</ul>
-							</div>
-						</div>
-
-
 					</div>
 
 					<aside>
@@ -295,6 +234,7 @@ ul>li {
 	<script th:src="@{/js/downvote.js}"></script>
 	<script th:src="@{/js/savePost.js}"></script>
 	<script th:src="@{/js/unsavePost.js}"></script>
+	<script th:src="@{/js/onScrollHomePage.js}"></script>
 	
 	<script>
 		$("#pageSizeSelect").change(function() {
